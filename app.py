@@ -6,12 +6,14 @@ from flask import (
     redirect,
     flash,
 )
+from flask_mail import Mail, Message
 import os
 import time
 from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+mail = Mail(app)
 
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
@@ -33,6 +35,15 @@ def index():
         }
         files.append(file)
     app.config["STORAGE_USAGE"] = total_size
+    if app.config["STORAGE_WARNING"] <= app.config["STORAGE_USAGE"]:
+        subject = "Warning: Storage limit reached."
+        recipients = [app.config["MAIL_USERNAME"]]
+        msg = Message(subject, recipients=recipients)
+        msg.body = "Please free up space or increase the storage capacity."
+        try:
+            mail.send(msg)
+        except Exception as e:
+            print(f"Failed to send mail: {e}")
     return render_template("index.html", path=path, files=files)
 
 
