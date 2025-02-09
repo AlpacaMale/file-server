@@ -21,8 +21,10 @@ def index():
     path = os.path.abspath(app.config["UPLOAD_FOLDER"])
     file_list = os.listdir(app.config["UPLOAD_FOLDER"])
     files = []
+    total_size = 0
     for name in file_list:
         file_info = os.stat(f"{app.config["UPLOAD_FOLDER"]}/{name}")
+        total_size += file_info.st_size
         file = {
             "name": name,
             "size": human_readable(file_info.st_size),
@@ -30,6 +32,7 @@ def index():
             "mtime": time.ctime(file_info.st_mtime),
         }
         files.append(file)
+    app.config["STORAGE_USAGE"] = total_size
     return render_template("index.html", path=path, files=files)
 
 
@@ -43,6 +46,10 @@ def upload_file():
 
     if file.filename == "":
         flash("There is no file")
+        return redirect("/")
+
+    if app.config["MAX_STORAGE"] <= file.content_length + app.config["STORAGE_USAGE"]:
+        flash("Storage limit exceeded!")
         return redirect("/")
 
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], file.filename))
