@@ -1,7 +1,6 @@
 from flask import (
     Flask,
     request,
-    Response,
     send_from_directory,
     render_template,
     redirect,
@@ -9,15 +8,12 @@ from flask import (
 )
 import os
 import time
+from config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
 
-UPLOAD_FOLDER = "uploads"
-SECRET_KEY = "your-secret"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.config["SECRET_KEY"] = SECRET_KEY
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
 @app.route("/", methods=["GET"])
