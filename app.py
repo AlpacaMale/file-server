@@ -5,6 +5,7 @@ from flask import (
     render_template,
     redirect,
     flash,
+    url_for,
 )
 from flask_mail import Mail, Message
 import os
@@ -35,7 +36,29 @@ def index():
         }
         files.append(file)
     app.config["STORAGE_USAGE"] = total_size
-    if app.config["STORAGE_WARNING"] <= app.config["STORAGE_USAGE"]:
+    return render_template("index.html", path=path, files=files)
+
+
+@app.route("/files/upload", methods=["POST"])
+def upload_file():
+    if "file" not in request.files:
+        flash("There is no file")
+        return redirect(url_for("index"))
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        flash("There is no file")
+        return redirect(url_for("index"))
+
+    if app.config["MAX_STORAGE"] <= file.content_length + app.config["STORAGE_USAGE"]:
+        flash("Storage limit exceeded!")
+        return redirect(url_for("index"))
+
+    if (
+        app.config["STORAGE_WARNING"]
+        <= file.content_length + app.config["STORAGE_USAGE"]
+    ):
         subject = "Warning: Storage limit reached."
         recipients = [app.config["MAIL_USERNAME"]]
         msg = Message(subject, recipients=recipients)
@@ -44,29 +67,11 @@ def index():
             mail.send(msg)
         except Exception as e:
             print(f"Failed to send mail: {e}")
-    return render_template("index.html", path=path, files=files)
-
-
-@app.route("/files/upload", methods=["POST"])
-def upload_file():
-    if "file" not in request.files:
-        flash("There is no file")
-        return redirect("/")
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        flash("There is no file")
-        return redirect("/")
-
-    if app.config["MAX_STORAGE"] <= file.content_length + app.config["STORAGE_USAGE"]:
-        flash("Storage limit exceeded!")
-        return redirect("/")
 
     file.save(os.path.join(app.config["UPLOAD_FOLDER"], file.filename))
 
     flash("File uploaded successfully!")
-    return redirect("/")
+    return redirect(url_for("index"))
 
 
 @app.route("/files/download/<filename>", methods=["GET"])
@@ -84,7 +89,7 @@ def delete_file(filename):
         flash(f"File '{filename}' deleted successfully!")
     else:
         flash("File not found")
-    return redirect("/")
+    return redirect(url_for("index"))
 
 
 def human_readable(size):
