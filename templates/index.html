@@ -46,7 +46,7 @@
           <tbody>
             {% for file in files %}
             <tr>
-              <td class="text-center">{{ file.name }}</td>
+              <td class="text-center overflow-ellipsis">{{ file.name }}</td>
               <td class="text-center">{{ file.ctime }}</td>
               <td class="text-center">{{ file.mtime }}</td>
               <td class="text-center">{{ file.size }}</td>
