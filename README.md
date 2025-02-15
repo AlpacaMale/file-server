@@ -25,11 +25,11 @@ git clone https://github.com/AlpacaMale/file-server
 ```bash
 FLASK_ENV=development
 
-MAIL_SERVER=smtp.gmail.com
+MAIL_SERVER="smtp.gmail.com"
 MAIL_PORT=587
 MAIL_USE_TLS=True
-MAIL_USERNAME=example@email.com
-MAIL_PASSWORD=your password here
+MAIL_USERNAME="example@email.com"
+MAIL_PASSWORD="your password here"
 MAIL_DEFAULT_SENDER='example@email.com'
 ```
 
